@@ -1,0 +1,202 @@
+#include "recaste.h"
+#include <mlx.h>
+#include <math.h>
+#include <stdlib.h>
+#define PI 3.1415926535
+#define R 10
+#define PLAYER 'P'
+
+int ft_strlen(char *str)
+{
+    int i = 0;
+    while (str[i]) i++;
+    return (i);
+}
+
+typedef struct s_texture
+{
+    void *wall;
+    void *space;
+    void *player_up;
+    void *player_lf;
+    void *player_do;
+    void *player_rg;
+    void *collect;
+    void *exit;
+    void *exit_open;
+    int width;
+    int hight;
+} t_texture;
+
+struct me {
+    void *mlx;
+    t_texture texture;
+    void *win;
+    void *img_win;
+    char *buffer;
+    int size_pixel;
+    int size_line;
+    int endian;
+    int rows, cols;
+    int pos_y;
+    int pos_x;
+    int ray_x;
+    int ray_y;
+};
+
+int manage_key(int keycode, struct me *game)
+{
+    if (keycode == 65307)
+        exit(1);
+    return (0);
+}
+
+// ✅ FIXED: added correct offset calculation
+void put_pixel(int x_c, int y_c, struct me *game, int color)
+{
+    if (x_c < 0 || x_c >= game->texture.width || y_c < 0 || y_c >= game->texture.hight)
+        return;
+    int offset = y_c * game->size_line + x_c * (game->size_pixel / 8);
+    *(unsigned int *)(game->buffer + offset) = color;
+}
+void Draw_star(int x, int y, struct me *game)
+{
+    int center_x = y * 50 + 25;
+    int center_y = x * 50 + 25; 
+    int length = 6;
+    int i = -length; 
+    while(i <= length)
+    {
+        put_pixel(center_x, center_y + i, game, 0xA03C78);
+        put_pixel(center_x + i, center_y, game,0xA03C78);
+        put_pixel(center_x + i, center_y + i,game, 0xA03C78);
+        put_pixel(center_x - i, center_y + i, game, 0xA03C78);
+        i++;
+    }
+}
+
+void Draw_cercle(int x, int y, struct me *game)
+{
+    float i = 0;
+    float angle, x1, y1;
+    while (i < 360)
+    {
+        angle = i;
+        x1 = R * cos(angle * PI / 180);
+        y1 = R * sin(angle * PI / 180);
+        put_pixel(y * 50 + 25 + x1, x * 50 + 25 + y1, game,0x386490);
+        i += 0.1;
+    }
+}
+
+void ft_clear_buffer(struct me *game)
+{
+    for (int y = 0; y < game->texture.hight; y++)
+    {
+        for (int x = 0; x < game->texture.width; x++)
+        {
+            int offset = y * game->size_line + x * (game->size_pixel / 8);
+            *(unsigned int *)(game->buffer + offset) = 0x000000;
+        }
+    }
+}
+
+void ft_put(struct me *game, int a, int b, int color)
+{
+    for (int y = a * 50; y < a * 50 + 50 && y < game->texture.hight; y++)
+    {
+        for (int x = b * 50; x < b * 50 + 50 && x < game->texture.width; x++)
+        {
+            int offset = y * game->size_line + x * (game->size_pixel / 8);
+            *(unsigned int *)(game->buffer + offset) = color;
+        }
+    }
+}
+
+void ft_render_map(struct me *game, char **map)
+{
+    int x, y = 0;
+    ft_clear_buffer(game);
+
+    while (y < game->rows)
+    {
+        x = 0;
+        while (x < game->cols)
+        {
+          ft_put(game, y, x,0x594A3C);
+            if (map[y][x] == '1')
+                ft_put(game, y, x, 0x6E6055);
+            else if (map[y][x] == 'P')
+                Draw_cercle(y, x, game);
+            else if(map[y][x] == 'C')
+                Draw_star(x, y, game);
+
+            x++;
+        }
+        y++;
+    }
+
+    mlx_put_image_to_window(game->mlx, game->win, game->img_win, 0, 0);
+}
+
+void get_size_map(char **map, int *row, int *colmns)
+{
+    *colmns = ft_strlen(map[0]);
+    while (map[(*row)])
+        (*row)++;
+}
+
+void render_map(struct me *game, char **map)
+{
+    get_size_map(map, &game->rows, &game->cols);
+    game->texture.width = game->cols * 50;
+    game->texture.hight = game->rows * 50;
+
+    game->mlx = mlx_init();
+    game->win = mlx_new_window(game->mlx, game->texture.width, game->texture.hight, "eMy 2D Game");
+    game->img_win = mlx_new_image(game->mlx, game->texture.width, game->texture.hight);
+
+    game->buffer = mlx_get_data_addr(game->img_win, &game->size_pixel, &game->size_line, &game->endian);
+    ft_render_map(game, map);
+    mlx_key_hook(game->win, manage_key, game);
+    mlx_loop(game->mlx);
+}
+
+void get_position_player(struct me *game, char **map)
+{
+    int i = 0;
+    int j;
+    while (map[i])
+    {
+        j = 0;
+        while (map[i][j])
+        {
+            if (map[i][j] == PLAYER)
+            {
+                game->pos_x = j;
+                game->pos_y = i;
+                return;
+            }
+            j++;
+        }
+        i++;
+    }
+}
+
+int main(void)
+{
+    struct me game = {0};
+
+    char *map[] =
+    {
+        "111111111110111",
+        "1100011111101111",
+        "10P0011111101111",
+        "1C1011111001111",
+        "11111111111111",
+        NULL,
+    };
+
+    get_position_player(&game, map);
+    render_map(&game, map);
+}
