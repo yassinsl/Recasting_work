@@ -51,7 +51,6 @@ int manage_key(int keycode, struct me *game)
     return (0);
 }
 
-// ✅ FIXED: added correct offset calculation
 void put_pixel(int x_c, int y_c, struct me *game, int color)
 {
     if (x_c < 0 || x_c >= game->texture.width || y_c < 0 || y_c >= game->texture.hight)
@@ -75,7 +74,7 @@ void Draw_star(int x, int y, struct me *game)
     }
 }
 
-void Draw_cercle(int x, int y, struct me *game)
+void Draw_cercle(int x, int y, struct me *game, int color)
 {
     float i = 0;
     float angle, x1, y1;
@@ -84,7 +83,7 @@ void Draw_cercle(int x, int y, struct me *game)
         angle = i;
         x1 = R * cos(angle * PI / 180);
         y1 = R * sin(angle * PI / 180);
-        put_pixel(y * 50 + 25 + x1, x * 50 + 25 + y1, game,0x386490);
+        put_pixel(y * 50 + 25 + x1, x * 50 + 25 + y1, game,color);
         i += 0.1;
     }
 }
@@ -127,10 +126,11 @@ void ft_render_map(struct me *game, char **map)
             if (map[y][x] == '1')
                 ft_put(game, y, x, 0x6E6055);
             else if (map[y][x] == 'P')
-                Draw_cercle(y, x, game);
+                Draw_cercle(y, x, game,0x386490);
             else if(map[y][x] == 'C')
                 Draw_star(x, y, game);
-
+            if(map[y][x] == 'X')
+               Draw_cercle(y, x, game,0x781414);
             x++;
         }
         y++;
@@ -189,11 +189,11 @@ int main(void)
 
     char *map[] =
     {
-        "111111111110111",
-        "1100011111101111",
+        "1111111111101111",
+        "110111X110111111",
         "10P0011111101111",
-        "1C1011111001111",
-        "11111111111111",
+        "1C1011111011111",
+        "111111111111111",
         NULL,
     };
 
