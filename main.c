@@ -51,67 +51,6 @@ int manage_key(int keycode, struct me *game)
     return (0);
 }
 
-void put_pixel(int x_c, int y_c, struct me *game, int color)
-{
-    if (x_c < 0 || x_c >= game->texture.width || y_c < 0 || y_c >= game->texture.hight)
-        return;
-    int offset = y_c * game->size_line + x_c * (game->size_pixel / 8);
-    *(unsigned int *)(game->buffer + offset) = color;
-}
-void Draw_star(int x, int y, struct me *game)
-{
-    int center_x = y * 50 + 25;
-    int center_y = x * 50 + 25; 
-    int length = 6;
-    int i = -length; 
-    while(i <= length)
-    {
-        put_pixel(center_x, center_y + i, game, 0xA03C78);
-        put_pixel(center_x + i, center_y, game,0xA03C78);
-        put_pixel(center_x + i, center_y + i,game, 0xA03C78);
-        put_pixel(center_x - i, center_y + i, game, 0xA03C78);
-        i++;
-    }
-}
-
-void Draw_cercle(int x, int y, struct me *game, int color)
-{
-    float i = 0;
-    float angle, x1, y1;
-    while (i < 360)
-    {
-        angle = i;
-        x1 = R * cos(angle * PI / 180);
-        y1 = R * sin(angle * PI / 180);
-        put_pixel(y * 50 + 25 + x1, x * 50 + 25 + y1, game,color);
-        i += 0.1;
-    }
-}
-
-void ft_clear_buffer(struct me *game)
-{
-    for (int y = 0; y < game->texture.hight; y++)
-    {
-        for (int x = 0; x < game->texture.width; x++)
-        {
-            int offset = y * game->size_line + x * (game->size_pixel / 8);
-            *(unsigned int *)(game->buffer + offset) = 0x000000;
-        }
-    }
-}
-
-void ft_put(struct me *game, int a, int b, int color)
-{
-    for (int y = a * 50; y < a * 50 + 50 && y < game->texture.hight; y++)
-    {
-        for (int x = b * 50; x < b * 50 + 50 && x < game->texture.width; x++)
-        {
-            int offset = y * game->size_line + x * (game->size_pixel / 8);
-            *(unsigned int *)(game->buffer + offset) = color;
-        }
-    }
-}
-
 void ft_render_map(struct me *game, char **map)
 {
     int x, y = 0;
