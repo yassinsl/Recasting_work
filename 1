@@ -19,7 +19,7 @@ int ft_strlen(char *str)
 typedef struct s_texture
 {
     void *wall;
-    void *o;
+    void *space;
     void *player_up;
     void *player_lf;
     void *player_do;
@@ -60,19 +60,7 @@ void ft_render_map(game *g, char **map)
 	int ox = (g->texture.width - D)/2;
 	int oy = (g->texture.height- D)/2;
     mlx_put_image_to_window(g->mlx, g->win, g->texture.wall, ox, oy);
-    int i = 0,j;
-    int cx = 64/2, cy = 64/2;
-    while(i < g->rows)
-    {
-	    j = 0;
-	while(j < g->cols)
-	{
-		if(map[i][j] == 'P')
-    			mlx_put_image_to_window(g->mlx, g->win, g->texture.o, cx, cy);
-		j++;
-	}
-	i++;
-    }
+    (void)map;
 }
 
 void get_size_map(char **map, int *row, int *columns)
@@ -89,10 +77,6 @@ void load_texture(game *g)
         g->mlx, "texture/resizeollazbi.xpm",
         &g->texture.width, &g->texture.height
     );
-    g->texture.o = mlx_xpm_file_to_image(
-        g->mlx, "texture/c1.xpm",
-        &g->texture.width, &g->texture.height
-    );
     if (!g->texture.wall)
         exit(3);
 }
@@ -101,8 +85,8 @@ void render_map(game *g, char **map)
 {
     get_size_map(map, &g->rows, &g->cols);
     g->mlx = mlx_init();
-    g->texture.width = 1480;
-    g->texture.height = 1782;
+    g->texture.width = 350;
+    g->texture.height = 350;
     g->win = mlx_new_window(g->mlx, g->texture.width, g->texture.height, "");
     load_texture(g);
     ft_render_map(g, map);
